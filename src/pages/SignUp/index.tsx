@@ -50,14 +50,13 @@ const SignUp: React.FC = () => {
           <img src={logoImg} alt="" />
           <h1>Faça seu cadastro</h1>
           <Input
-            erroMsg={errors.name && errors.name}
+            erroMsg={errors && errors.name}
             icon={FiUser}
             value={values.name}
             name="name"
             type="text"
             onChange={(e) =>
-              setValues({ ...values, [e.target.name]: e.target.value })
-            }
+              setValues({ ...values, [e.target.name]: e.target.value })}
             placeholder="Nome"
           />
 
@@ -67,8 +66,7 @@ const SignUp: React.FC = () => {
             type="email"
             value={values.email}
             onChange={(e) =>
-              setValues({ ...values, [e.target.name]: e.target.value })
-            }
+              setValues({ ...values, [e.target.name]: e.target.value })}
             placeholder="E-mail"
           />
           <Input
@@ -77,8 +75,7 @@ const SignUp: React.FC = () => {
             type="password"
             value={values.password}
             onChange={(e) =>
-              setValues({ ...values, [e.target.name]: e.target.value })
-            }
+              setValues({ ...values, [e.target.name]: e.target.value })}
             placeholder="Senha"
           />
           <Button type="submit">Cadastrar</Button>
