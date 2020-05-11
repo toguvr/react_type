@@ -8,11 +8,12 @@ import Input from '../../components/Input';
 import Button from '../../components/Button';
 import getValidationErrors from '../../utils';
 
-interface ErrorLog {
-  name: string;
-  email: string;
-  password: string;
-}
+// interface ErrorLog {
+//   name: string;
+//   email: string;
+//   password: string;
+// }
+
 const SignUp: React.FC = () => {
   const [values, setValues] = useState({ name: '', email: '', password: '' });
   const [errors, setErrors] = useState({});
