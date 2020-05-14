@@ -1,68 +1,102 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useContext } from 'react';
 
 import { FiLogIn, FiMail, FiLock } from 'react-icons/fi';
 import * as Yup from 'yup';
+import { Form } from '@unform/web';
+import { FormHandles } from '@unform/core';
+import { Link, useHistory } from 'react-router-dom';
 import logoImg from '../../assets/logo.svg';
-import { Container, Content, Background } from './styles';
+import { Container, Content, Background, AnimationContainer } from './styles';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import getValidationErrors from '../../utils';
+import { useAuth } from '../../hooks/auth';
+import { useToast } from '../../hooks/toast';
+import { routes } from '../../routes';
+
+interface SignInForm {
+  email: string;
+  password: string;
+}
 
 const SignIn: React.FC = () => {
-  const [values, setValues] = useState({ email: '', password: '' });
-  const [errors, setErrors] = useState({});
+  const formRef = useRef<FormHandles>(null);
+  const history = useHistory();
+  const auth = useAuth();
 
-  const handleSubmit = useCallback(async (e) => {
-    e.preventDefault();
-    setErrors({ name: '' });
+  const toast = useToast();
 
-    try {
-      const schema = Yup.object().shape({
-        email: Yup.string()
-          .email('Email inválido')
-          .required('Email obrigatório'),
-        password: Yup.string().required('Senha obrigatória'),
-      });
+  const handleSubmit = useCallback(
+    async (data: SignInForm) => {
+      formRef.current?.setErrors({});
 
-      await schema.validate(values, {
-        abortEarly: false,
-      });
-    } catch (err) {
-      setErrors(getValidationErrors(err));
-    }
-  }, []);
+      try {
+        const schema = Yup.object().shape({
+          email: Yup.string()
+            .email('Email inválido')
+            .required('Email obrigatório'),
+          password: Yup.string().required('Senha obrigatória'),
+        });
+
+        await schema.validate(data, {
+          abortEarly: false,
+        });
+
+        await auth.signIn({
+          email: data.email,
+          password: data.password,
+        });
+
+        history.push(routes.dashboard);
+
+        toast.addToast({
+          type: 'success',
+          title: 'Bem Vindo,',
+          description: 'Autenticado com sucesso',
+        });
+      } catch (err) {
+        if (err instanceof Yup.ValidationError) {
+          formRef.current?.setErrors(getValidationErrors(err));
+
+          return;
+        }
+        toast.addToast({
+          type: 'error',
+          title: 'Erro na autenticação',
+          description: 'Ocorreu um erro ao fazer login, cheque as credenciais',
+        });
+      }
+    },
+    [auth.signIn, toast.addToast],
+  );
 
   return (
     <Container>
       <Content>
-        <form onSubmit={handleSubmit}>
-          <img src={logoImg} alt="" />
-          <h1>Faça seu login</h1>
-          <Input
-            icon={FiMail}
-            name="email"
-            type="email"
-            placeholder="E-mail"
-            value={values.email}
-            onChange={(e) =>
-              setValues({ ...values, [e.target.name]: e.target.value })}
-          />
-          <Input
-            icon={FiLock}
-            name="password"
-            type="password"
-            placeholder="Senha"
-            value={values.password}
-            onChange={(e) =>
-              setValues({ ...values, [e.target.name]: e.target.value })}
-          />
-          <Button type="submit">Entrar</Button>
-          <a href="forgot">Esqueci minha senha</a>
-        </form>
-        <a href="">
-          <FiLogIn />
-          Criar conta
-        </a>
+        <AnimationContainer>
+          <Form ref={formRef} onSubmit={handleSubmit}>
+            <img src={logoImg} alt="" />
+            <h1>Faça seu login</h1>
+            <Input
+              icon={FiMail}
+              name="email"
+              type="email"
+              placeholder="E-mail"
+            />
+            <Input
+              icon={FiLock}
+              name="password"
+              type="password"
+              placeholder="Senha"
+            />
+            <Button type="submit">Entrar</Button>
+            <a href="forgot">Esqueci minha senha</a>
+          </Form>
+          <Link to={routes.signup}>
+            <FiLogIn />
+            Criar conta
+          </Link>
+        </AnimationContainer>
       </Content>
       <Background />
     </Container>

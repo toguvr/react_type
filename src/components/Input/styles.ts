@@ -35,7 +35,7 @@ export const Container = styled.div<ContainerProps>`
   ${(props) =>
     props.erroMsg &&
     css`
-      border-color:: #c53030;
+      border-color: #c53030;
     `}
 
   ${(props) =>
