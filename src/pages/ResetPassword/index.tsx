@@ -1,43 +1,41 @@
 import React, { useCallback, useRef } from 'react';
 
-import { FiMail, FiLock, FiUser, FiArrowLeft } from 'react-icons/fi';
+import { FiLock } from 'react-icons/fi';
 import * as Yup from 'yup';
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
-import { Link, useHistory } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 import logoImg from '../../assets/logo.svg';
 import { Container, Content, Background, AnimationContainer } from './styles';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import getValidationErrors from '../../utils';
-import { routes } from '../../routes';
 import { useToast } from '../../hooks/toast';
+import { routes } from '../../routes';
 import api from '../../services/api';
 
-interface SignUpFormData {
-  name: string;
-  email: string;
+interface ResetPasswordForm {
   password: string;
+  password_confirmation: string;
 }
 
-const SignUp: React.FC = () => {
+const ResetPassword: React.FC = () => {
   const formRef = useRef<FormHandles>(null);
   const history = useHistory();
-  const { addToast } = useToast();
+
+  const toast = useToast();
+  const location = useLocation();
 
   const handleSubmit = useCallback(
-    async (data: SignUpFormData) => {
+    async (data: ResetPasswordForm) => {
       formRef.current?.setErrors({});
 
       try {
         const schema = Yup.object().shape({
-          name: Yup.string().required('Nome obrigatório'),
-          email: Yup.string()
-            .email('Email inválido')
-            .required('Email obrigatório'),
-          password: Yup.string().min(
-            6,
-            'A senha deve conter no mínimo 6 dígitos',
+          password: Yup.string().required('Senha obrigatória'),
+          password_confirmation: Yup.string().oneOf(
+            [Yup.ref('password'), null],
+            'Confirmação incorreta',
           ),
         });
 
@@ -45,14 +43,25 @@ const SignUp: React.FC = () => {
           abortEarly: false,
         });
 
-        await api.post('users', data);
+        const { password, password_confirmation } = data;
+        const token = new URLSearchParams(location.search).get('token');
+
+        if (!token) {
+          throw new Error();
+        }
+
+        api.post('password/reset', {
+          password,
+          password_confirmation,
+          token,
+        });
 
         history.push(routes.signin);
 
-        addToast({
+        toast.addToast({
           type: 'success',
-          title: 'Cadastro Realizado!',
-          description: 'Você já pode fazer seu login no GoBarber!',
+          title: 'Bem Vindo,',
+          description: 'Autenticado com sucesso',
         });
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
@@ -60,49 +69,43 @@ const SignUp: React.FC = () => {
 
           return;
         }
-        addToast({
+        toast.addToast({
           type: 'error',
-          title: 'Erro no cadastro',
-          description: 'Ocorreu um erro ao fazer o cadastro, tente novamente',
+          title: 'Erro ao resetar senha',
+          description: 'Ocorreu um erro ao resetar sua senha, tente novamente.',
         });
       }
     },
-    [addToast, history],
+    [history, toast, location.search],
   );
 
   return (
     <Container>
-      <Background />
-
       <Content>
         <AnimationContainer>
           <img src={logoImg} alt="" />
           <Form ref={formRef} onSubmit={handleSubmit}>
-            <h1>Faça seu cadastro</h1>
-            <Input icon={FiUser} name="name" type="text" placeholder="Nome" />
+            <h1>Resetar Senha</h1>
 
-            <Input
-              icon={FiMail}
-              name="email"
-              type="email"
-              placeholder="E-mail"
-            />
             <Input
               icon={FiLock}
               name="password"
               type="password"
-              placeholder="Senha"
+              placeholder="Nova Senha"
             />
-            <Button type="submit">Cadastrar</Button>
+            <Input
+              icon={FiLock}
+              name="password_confirmation"
+              type="password"
+              placeholder="Confirmação da Senha"
+            />
+            <Button type="submit">Alterar senha</Button>
           </Form>
-          <Link to={routes.signin}>
-            <FiArrowLeft />
-            voltar para login
-          </Link>
         </AnimationContainer>
       </Content>
+      <Background />
     </Container>
   );
 };
 
-export default SignUp;
+export default ResetPassword;

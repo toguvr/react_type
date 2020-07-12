@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useContext } from 'react';
+import React, { useCallback, useRef } from 'react';
 
 import { FiLogIn, FiMail, FiLock } from 'react-icons/fi';
 import * as Yup from 'yup';
@@ -67,15 +67,15 @@ const SignIn: React.FC = () => {
         });
       }
     },
-    [auth.signIn, toast.addToast],
+    [auth, toast, history],
   );
 
   return (
     <Container>
       <Content>
         <AnimationContainer>
+          <img src={logoImg} alt="" />
           <Form ref={formRef} onSubmit={handleSubmit}>
-            <img src={logoImg} alt="" />
             <h1>Faça seu login</h1>
             <Input
               icon={FiMail}
@@ -90,7 +90,7 @@ const SignIn: React.FC = () => {
               placeholder="Senha"
             />
             <Button type="submit">Entrar</Button>
-            <a href="forgot">Esqueci minha senha</a>
+            <Link to={routes.forgotPassword}>Esqueci minha senha</Link>
           </Form>
           <Link to={routes.signup}>
             <FiLogIn />
