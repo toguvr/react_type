@@ -78,7 +78,7 @@ const Dashboard: React.FC = () => {
         params: {
           year: selectedDate.getFullYear(),
           month: selectedDate.getMonth() + 1,
-          day: selectedDate.getDate() + 1,
+          day: selectedDate.getDate(),
         },
       })
       .then((response) => {
